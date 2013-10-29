@@ -1,0 +1,51 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <GL/glut.h>
+#include <GL/gl.h>			// Header File For The OpenGL32 Library
+#include <GL/glu.h>			// Header File For The GLu32 Library
+
+#include "../utilities/visualization/camera.h" // For Camera Control Class
+#include "node.h"
+#include <time.h>
+
+/* ASCII code for the escape key. */
+#define ESCAPE 27
+/* define shape shortcuts */
+#define TRIANGLE 0.0
+#define CIRCLE 1.0
+#define PRISM 2.0
+const float DELTA_TIME = 0.0005;
+const float GRAVITY = 9.81;
+
+class simSession {
+	public:
+		int window;
+		static void InitGL(int Width, int Height);
+		static void DrawGLScene();
+		static void redrawGLScene();
+		static node* geometryHead;
+		static node* geometryCursor;
+		simSession(int *argc, char **argv);
+		static int demoType;
+                static void getData(vector &position);
+                static void updateProjectilePosition(vector position);
+                static void fire();
+                static void explodeBall(int count,float,float,float);
+
+
+                static float calcMassProperties();
+                static void calcForces(float windMagnitude, float windAngle, float drag, vector initial, vector &windForce, vector &gravityForce, float gravity, vector &dragForce);
+                static vector sumForces (vector initial, vector windForce, vector gravityForce, vector dragForce);
+                static vector calcAcceleration(float mass, vector force);
+                static vector calcVelocity(vector oldVelocity, vector acceleration, float timestep);
+                static vector calcPosition(vector oldPosition, vector velocity, float timestep);
+                static vector initial,windForce,gravityForce,dragForce,forceSum,acceleration,velocity;
+                static vector position;
+	        static float windMagnitude,windVelocity,windDirection,mass, drag, gravity;
+                static float targetX,targetY,targetZ;
+                static float anaX,anaY,anaZ;
+                static vector anaVelocity;
+		static int VelFactor;
+                static int collision;
+};

@@ -1,0 +1,150 @@
+#include "golfBall.h"
+float golfBall::radius,golfBall::mediumDensity,golfBall::windMagnitude,golfBall::mass,golfBall::lDrag,golfBall::tDrag,golfBall::gravity,golfBall::dragThreshold;
+vector golfBall::windDirection, golfBall::velocity, golfBall::gravityForce, golfBall::magnusForce, golfBall::rotationalVelocity, golfBall::position, golfBall::forceSum, golfBall::initial, golfBall::dragForce;
+bool golfBall::topSpin, golfBall::showVectors = true;
+int golfBall::bounces = 0;
+
+const float STEP = 0.001;
+/**
+*Golfball constructor
+*
+* @brief constructs the golfBall
+*/
+golfBall::golfBall() {
+	radius=5;
+	mass = 5;
+	lDrag = 5;
+	position.set(0,0,0);
+	// dummy sample inputs
+		velocity.set(0.0,0.0,0.0);
+		gravityForce.set(0,-9.8,0);
+		windDirection.set(0,0,0);
+		windMagnitude = 10;
+		rotationalVelocity.set(1,0,0);
+		mediumDensity =0.0001;
+	
+}
+/**
+*Golfball simulator
+*
+* @brief does math on the golfBall
+* @return returns the current position
+*/
+vector golfBall::runSimulation() {
+	rungeKutta(&sumForces,0.001,velocity,position,mass,windDirection,windMagnitude);
+	float x,y,z;
+	position.get(x,y,z);
+	if (y<0) {
+		if (bounces<5) {
+			bounces++;
+			velocity.get(x,y,z);
+			velocity.set(x,-y*0.6,z);
+			position.get(x,y,z);
+			position.set(x,abs(y),z);
+		}
+		else {
+			bounces = 0;
+			position = 0;
+			velocity.set(0,1,0);
+		}
+	}
+	return position;
+}
+/**
+*Golfball displayer
+*
+* @brief puts the ball onscreen
+*/
+void golfBall::display() {
+	float x,y,z;;
+			velocity.get(x,y,z);
+cout << "velocity0 x: " << x << " y: " << y << " z: " << z << endl;
+	glPushMatrix();
+	doPositioning();
+	// Draw/color Sphere
+		glColor3f(1.0,1.0,0.0);
+		gluSphere (gluNewQuadric(), 0.5, 16,16);
+		if (showVectors) {
+			glColor3f(0.0,1.0,1.0);
+			glBegin(GL_LINES);
+				glVertex3f(0.0,0.0,0.0);
+				velocity.get(x,y,z);
+				glVertex3f(x,y,z);
+			glColor3f(1.0,0.0,0.0);
+				glVertex3f(0.0,0.0,0.0);
+				gravityForce.get(x,y,z);
+				glVertex3f(x,y,z);
+			glColor3f(0.0,1.0,0.0);
+				glVertex3f(0.0,0.0,0.0);
+				magnusForce.get(x,y,z);
+				glVertex3f(x,y,z);
+			glEnd();
+		}
+		glPopMatrix();
+}
+/**
+*Golfball positioner
+*
+* @brief decides where the ball will be
+*/
+void golfBall::doPositioning() {
+	float x,y,z;
+	position.get(x,y,z);
+	glTranslatef(x/*positive is "left" relative to original view*/,y/*positive is up*/,z/*positive is "away" relative to original view*/);
+}
+/**
+*Golfball force summer
+*
+* @brief sums the forces on the ball
+*/
+vector golfBall::sumForces(vector param) {
+	forceSum = 0;
+	updateDrag(forceSum,param);
+	updateMagnus(forceSum,param);
+	updateGravity(forceSum);
+	return forceSum;
+}
+/**
+*Golfball drag updater
+*
+* @brief called by sumForces to update drag
+*/
+void golfBall::updateDrag(vector &currentForce,vector param) {
+	float drag;
+	if (velocity.magnitude() < dragThreshold )
+		drag = lDrag;
+	else
+		drag = tDrag;
+	dragForce = 0.5*mediumDensity*(4*PI*pow(radius,2))/2*drag;
+	float x,y,z;
+	float a,b,c;
+	param.get(x,y,z);
+	dragForce.get(a,b,c);
+	dragForce.set(a*x*x,b*y*y,c*z*z);
+	currentForce = currentForce - dragForce;
+}
+/**
+*Golfball gravity updater
+*
+* @brief called by sumForces to update gravity effects
+*/
+void golfBall::updateGravity(vector &currentForce) {
+	currentForce = currentForce + (gravityForce * mass);
+}
+/**
+*Golfball magnus updater
+*
+* @brief called by sumForces to update Magnus force
+*/
+void golfBall::updateMagnus(vector &currentForce,vector param) {
+	magnusForce = (param*(2*PI*mediumDensity*pow(radius,4))/(2*radius));
+	float x,y,z;
+	float a,b,c;
+	rotationalVelocity.get(x,y,z);
+	magnusForce.get(a,b,c);
+	if (!topSpin) {
+		a *=1; b*=1; c*=1;
+	}
+	magnusForce.set(a*x,b*y,c*z);
+	currentForce = (currentForce + magnusForce);
+}

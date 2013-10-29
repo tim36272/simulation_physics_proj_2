@@ -1,0 +1,7 @@
+#include "node.h"
+#include <stdlib.h>
+node::node() {
+        next = NULL;
+}
+node::~node() {
+ }

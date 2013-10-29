@@ -1,0 +1,147 @@
+#include "geometry.h"
+#include <iostream>
+#ifndef PI
+#define PI 3.141592753
+#endif
+using namespace std;
+const int plane = 0;
+
+void geometry::moveCursor(int destination) {
+	cursor = &objects[destination];
+}
+
+void geometry::redraw() {
+	for (int i=0;i<numObjects;i++) {
+		objects[i].display();
+	}
+}
+	
+
+bool geometry::isFull() {
+	if (numObjects==(maxSize))
+		return true;
+	return false;
+}
+
+void geometry::drawTriangle(float side1, float side2, float side3) {
+if (!isFull()) {
+	numObjects++; // define that we are adding a new object
+	moveCursor(numObjects-1);
+	//make side 1 longest, side 3 shortest
+//	float sides[TRIANGLE_SIDES] =  {side1, side2, side3};
+//	sortNumeric(TRIANGLE_SIDES, sides);
+	//determine circumcenter offset  relative to side1+2 vertex
+	float xOffset=side1/2;
+	float smallSegment=(pow(side3,2)-pow(side1,2)-pow(side2,2))/((-2)*side1);
+	float altitude = sqrt(pow(side2,2)-pow(smallSegment,2));
+	float yOffset=altitude/2;
+	cursor->storedGeometry = new float*[3];
+	//create coordinates based on sides and circumcenter
+	//define lower left point
+	cursor->storedGeometry[0] = new float[3];
+	cursor->storedGeometry[0][X] = -xOffset;
+	cursor->storedGeometry[0][Y] = -yOffset;
+	cursor->storedGeometry[0][Z] = plane;
+	//define lower right point
+	cursor->storedGeometry[1] = new float[3];
+	cursor->storedGeometry[1][X] = xOffset;
+	cursor->storedGeometry[1][Y] = -yOffset;
+	cursor->storedGeometry[1][Z] = plane;
+	//define top point
+	cursor->storedGeometry[2] = new float[3];
+	cursor->storedGeometry[2][X] = -(xOffset-smallSegment);
+	cursor->storedGeometry[2][Y] = yOffset;
+	cursor->storedGeometry[2][Z] = plane;
+	
+	//call drawTriangle for coordinates
+	cursor->geoLength=3;
+}
+}
+void geometry::drawCube(float edge) {
+	if (!isFull()) {
+		numObjects++;
+		moveCursor(numObjects-1);
+		cursor->storedGeometry = new float*[36];
+		cursor->geoLength = 12;
+		for (int i=0;i<=1;i++) { //for front and back
+			//lower
+			cursor->storedGeometry[i*6] = new float[3];
+				cursor->storedGeometry[i*6][X] = -(edge/2.0);
+				cursor->storedGeometry[i*6][Y] = -(edge/2.0);
+				cursor->storedGeometry[i*6][Z] = (-edge/2.0)+i*(edge);
+			cursor->storedGeometry[i*6+1] = new float[3];
+				cursor->storedGeometry[i*6+1][X] = (edge/2.0);
+				cursor->storedGeometry[i*6+1][Y] = -(edge/2.0);
+				cursor->storedGeometry[i*6+1][Z] = (-edge/2.0)+i*(edge);
+			cursor->storedGeometry[i*6+2] = new float[3];
+				cursor->storedGeometry[i*6+2][X] = -(edge/2.0);
+				cursor->storedGeometry[i*6+2][Y] = (edge/2.0);
+				cursor->storedGeometry[i*6+2][Z] = (-edge/2.0)+i*(edge);
+			//upper
+			cursor->storedGeometry[i*6+3] = new float[3];
+				cursor->storedGeometry[i*6+3][X] = (edge/2.0);
+				cursor->storedGeometry[i*6+3][Y] = -(edge/2.0);
+				cursor->storedGeometry[i*6+3][Z] = (-edge/2.0)+i*(edge);
+			cursor->storedGeometry[i*6+4] = new float[3];
+				cursor->storedGeometry[i*6+4][X] = (edge/2.0);
+				cursor->storedGeometry[i*6+4][Y] = (edge/2.0);
+				cursor->storedGeometry[i*6+4][Z] = (-edge/2.0)+i*(edge);
+			cursor->storedGeometry[i*6+5] = new float[3];
+				cursor->storedGeometry[i*6+5][X] = -(edge/2.0);
+				cursor->storedGeometry[i*6+5][Y] = (edge/2.0);
+				cursor->storedGeometry[i*6+5][Z] = (-edge/2.0)+i*(edge);
+		}
+	}
+}
+
+
+void geometry::rotateObject(int ID,Quaternion newRotation) {
+	moveCursor(ID);
+//	*(cursor->rotation) = *(cursor->rotation) * newRotation;
+	*(cursor->rotation) = newRotation;
+}
+
+void geometry::translateObject(int ID,vector position) {
+	moveCursor(ID);
+	cursor->translateObject(position);
+}
+void geometry::translateObject(int ID,float x,float y, float z) {
+	moveCursor(ID);
+	vector position(x,y,z);
+	cursor->translateObject(position);
+}
+void geometry::setColor(int ID,float red,float green,float blue) {
+	moveCursor(ID);
+	cursor->red = red;
+	cursor->green = green;
+	cursor->blue = blue;
+}
+/**
+*Geometry constructor
+*
+* @brief constructs the geometry class and sets some parameters, such as CARTESIAN mode
+*/
+geometry::geometry(int size) {
+	maxSize = size;
+	mode=CARTESIAN;
+	numObjects=0;
+	objects = new object[size];
+}
+
+/**
+*Geometry destructor
+*
+* @brief cleans up after you
+*/
+geometry::~geometry() {
+	if (objects!=NULL) {
+		for (int j=0;j<numObjects;j++) {
+			cursor = &(objects[j]);
+			for (int i=0;i<cursor->geoLength;i++) {
+					delete[] cursor->storedGeometry[i];
+			}
+			delete cursor->storedGeometry;
+		}
+	}
+}
+

@@ -1,0 +1,81 @@
+#ifndef QUATERNION
+#define QUATERNION
+#include <cmath>
+#include "vec.hpp"
+#include <stdlib.h>
+#include <ctime>
+
+// Quaternion Class
+class Quaternion
+{
+public:
+    double w; // number (scalar) component
+    vec v; // vec component: v.x, v.y, v.z
+
+ //   Quaternion& operator=(Quaternion q);
+
+    Quaternion(void);
+    Quaternion(double e0, double e1, double e2, double e3);
+//		Quaternion operator=(Quaternion& rhs);
+		Quaternion operator=(Quaternion rhs);
+		bool operator==(Quaternion& rhs);
+		Quaternion(double,vec);
+		Quaternion(double inputMatrix[]);
+		Quaternion(double phi, double theta, double gamma);
+		void get(double params[])const;
+		void set(double params[]);
+		void set(double phi, double theta, double gamma );
+		void setRotationMatrix(double inputMatrix[]);
+		void getRotationMatrix(double params[]) const;
+		void get(double &phi, double &theta, double &gamma);
+		bool isZeroRotation() {return (w==1); }
+		void rectify();
+		bool rectifyIfNeeded();
+		double magnitude();
+		double magnitudeSquared();
+		void assignToZero() {w=1; v=0;}
+		void makeRandom();
+		float dot( Quaternion q1, Quaternion q2) { return (q1.v.dot(q2.v) + q1.w*q2.w); }
+		Quaternion slerp(Quaternion first, Quaternion second, double param);
+		vec rotateVec(vec input);
+
+    double Magnitude (void);
+    vec Getvec (void);
+    double GetScalar (void);
+    Quaternion operator+=(Quaternion q);
+    Quaternion operator-=(Quaternion q);
+    Quaternion operator*=(double s);
+    Quaternion operator/=(double s);
+		Quaternion operator~();
+//    Quaternion operator~(void) const { return Quaternion (w, -v.x, -v.y, -v.z); }
+};
+
+// Quaternion operators
+Quaternion operator+(Quaternion q1, Quaternion q2);
+Quaternion operator-(Quaternion q1, Quaternion q2);
+Quaternion operator*(Quaternion q1, Quaternion q2);
+
+// Scalar multiplication and division
+Quaternion operator*(Quaternion q, double s);
+Quaternion operator*(double s, Quaternion q);
+Quaternion operator/(Quaternion q, double s);
+
+// Quaternion-vec multiplication
+Quaternion operator*(Quaternion q1, vec v);
+Quaternion operator*(vec v, Quaternion q1);
+
+
+// Utility functions
+double QGetAngle (Quaternion q);
+vec QGetAxis (Quaternion q);
+Quaternion QRotate(Quaternion q1, Quaternion q2);
+Quaternion QVRotate (Quaternion q, vec v);
+
+// Get euler angles from quaternions and vice versa
+Quaternion MakeQFromEulerAngles(double x, double y, double z);
+vec MakeEulerAnglesFromQ (Quaternion q);
+
+// Conversion Functions
+double DegreesToRadians(double deg);
+double RadiansToDegrees(double rad);
+#endif

@@ -1,0 +1,307 @@
+#include "camera.h"
+
+using namespace std;
+
+// Initialization
+
+int camera::window;
+float camera::CamposX; // Eye Vector
+float camera::CamposY;
+float camera::CamposZ;
+
+float camera::LookAtX; // Center Vector
+float camera::LookAtY;
+float camera::LookAtZ;
+
+float camera::UpVectX; // Up Vector
+float camera::UpVectY;
+float camera::UpVectZ;
+
+float camera::InX; // Define In Vector
+float camera::InY;
+float camera::InZ;
+
+float camera::HorizontalX; // Define Horizontal Vector
+float camera::HorizontalY;
+float camera::HorizontalZ;
+
+float camera::TempX; // Mouse x/y Position
+float camera::TempY;
+float camera::TempZ;
+
+// Spherical Coordinates for Camera
+float camera::Radius;
+float camera::Theata;
+float camera::Phi;
+
+// Default Camera Speed
+int camera::CamSpeed = 5;
+bool camera::fired = false;
+
+// Movement Varibles
+int camera::ChangeWindSpeed;
+int camera::ChangeMass;
+int camera::ChangeDrag;
+int camera::ChangeVelo;
+int camera::ChangeWindDrag;
+bool camera::BallCam = false;
+
+camera::camera(int inWindow) 
+	{
+		camera::window = inWindow;
+	}
+
+camera::~camera() 
+	{
+	}
+
+// Class Functions
+
+ 
+void camera::KeyPress( unsigned char key, int x, int y )
+	{
+	InX = LookAtX - CamposX; // Define In Vector
+	InY = LookAtY - CamposY;
+	InZ = LookAtZ - CamposZ;
+	
+	HorizontalX = -InZ; // Define Horizontal Vector
+	HorizontalY = 0;
+	HorizontalZ = InX;
+	switch ( key ) { // Control Camera Movment Via Keyboard
+
+	case 'w': // Move Forward
+	CamposX += InX;
+	CamposY += InY;
+	CamposZ += InZ;
+	LookAtX += InX;
+	LookAtY += InY;
+	LookAtZ += InZ;
+	break;
+
+	case 's': // Move Backward
+	CamposX -= InX;
+	CamposY -= InY;
+	CamposZ -= InZ;
+	LookAtX -= InX;
+	LookAtY -= InY;
+	LookAtZ -= InZ;
+	break;
+
+	case 'a': // Move Left
+	CamposX -= HorizontalX;
+	CamposY -= HorizontalY;
+	CamposZ -= HorizontalZ;
+	LookAtX -= HorizontalX;
+	LookAtY -= HorizontalY;
+	LookAtZ -= HorizontalZ;
+	break;
+
+	case 'd': // Move Right
+	CamposX += HorizontalX;
+	CamposY += HorizontalY;
+	CamposZ += HorizontalZ;
+	LookAtX += HorizontalX;
+	LookAtY += HorizontalY;
+	LookAtZ += HorizontalZ;
+	break;
+
+	case '2': // Move Up
+	CamposY += .5;
+	LookAtY += .5;
+	break;
+
+	case 'x': // Move Down
+	CamposY -= .5;
+	LookAtY -= .5;
+	break;
+
+	case '-': // Move Down
+	if( CamSpeed >= 1 )
+	CamSpeed -= 1; 
+	break;
+
+	case '+': // Move Down
+	if( CamSpeed < 10 )
+	CamSpeed += 1; 
+	break;
+
+
+        // Cannon Movment Controls
+
+	case 'i': // Move Up
+        if(/*( geometry::Ag_Theta > -90 ) && (*/!fired){
+        geometry::Ag_Theta -= 3 ;
+
+        geometry::CanX = sin(geometry::Ag_Theta*Pi/180)*10;
+        geometry::CanY = sin(geometry::Ag_Phi*Pi/180)*cos(geometry::Ag_Theta*Pi/180)*10;
+        geometry::CanZ = cos(geometry::Ag_Phi*Pi/180)*cos(geometry::Ag_Theta*Pi/180)*10;
+        }
+	break;
+
+	case 'k': // Move Down
+        if(/*( geometry::Ag_Theta < 0 ) && (*/!fired) {
+        geometry::Ag_Theta += 3 ;
+        
+        geometry::CanX = sin(geometry::Ag_Theta*Pi/180)*10;
+        geometry::CanY = sin(geometry::Ag_Phi*Pi/180)*cos(geometry::Ag_Theta*Pi/180)*10;
+        geometry::CanZ = cos(geometry::Ag_Phi*Pi/180)*cos(geometry::Ag_Theta*Pi/180)*10;
+        }
+	break;
+
+	case 'l': // Move Left
+        if(/*( geometry::Ag_Phi > -90 ) && (*/!fired) {
+        geometry::Ag_Phi -= 3 ;
+        
+
+        geometry::CanX = sin(geometry::Ag_Theta*Pi/180)*10;
+        geometry::CanY = sin(geometry::Ag_Phi*Pi/180)*(cos(geometry::Ag_Theta*Pi/180)*10);
+        geometry::CanZ = cos(geometry::Ag_Phi*Pi/180)*(cos(geometry::Ag_Theta*Pi/180)*10);
+        }
+	break;
+
+	case 'j': // Move Right
+        if(/*( geometry::Ag_Phi < 90 ) && (*/!fired) {
+        geometry::Ag_Phi += 3 ;
+        
+
+        geometry::CanX = sin(geometry::Ag_Theta*Pi/180)*10;
+        geometry::CanY = sin(geometry::Ag_Phi*Pi/180)*(cos(geometry::Ag_Theta*Pi/180)*10);
+        geometry::CanZ = cos(geometry::Ag_Phi*Pi/180)*(cos(geometry::Ag_Theta*Pi/180)*10);
+        }
+	break;
+
+
+	// Movment Properties
+	
+
+	// Wind Speed
+	case 'r':
+	ChangeWindSpeed = 1;
+	break;
+
+	case 'f':
+	ChangeWindSpeed = -1;
+	break;
+
+
+	// Wind Drag
+	case ',':
+	ChangeWindDrag = 1;
+	break;
+
+	case '.':
+	ChangeWindDrag = -1;
+	break;
+
+
+	// Mass
+	case 't':
+	ChangeMass = 1;
+	break;
+
+	case 'g':
+	ChangeMass = -1;
+	break;
+
+	// Drag
+	case 'y':
+	ChangeDrag = 1;
+	break;
+
+	case 'h':
+	ChangeDrag = -1;
+	break;
+
+
+	// Velocity
+	case '[':
+	ChangeVelo = 1;
+	break;
+
+	case ']':
+	ChangeVelo = -1;
+	break;
+	
+
+
+
+        // Special Cases
+
+	case 27: // Esc key
+		glutDestroyWindow(window);
+	break;
+        
+        case '0':
+        if( BallCam )
+        BallCam = false;
+        else
+        BallCam = true;
+        break;
+
+        case ' ': //space
+                fired = true;
+        break;
+	   }
+	}
+
+void camera::MouseDrag( int Xpos, int Ypos )
+	{
+	Theata = Theata + ( ( Xpos - TempX ) * CamSpeed * (Pi/180) * .2 ); // Compute Horizontal Camera Movment
+
+	Phi = Phi + ( ( Ypos - TempY )  * CamSpeed * (Pi/180) * .2 ); // Compute Vertical Movment
+
+	// Update Center Vector
+	LookAtX = ( Radius * sin( Theata ) * cos( Phi ) ) + CamposX;
+	LookAtY = ( Radius * sin( Theata ) * sin( Phi ) ) + CamposY;
+	LookAtZ = ( Radius * cos( Theata ) ) + CamposZ;
+
+
+	// Update Latest Mouse Movment Locations
+	TempY = Ypos;
+	TempX = Xpos;
+	}
+
+void camera::ReadIn(bool loadSaved)
+	{
+	if (loadSaved) {
+	char Dummy; // To Take In Commas
+
+	fstream fin;
+	fin.open( "CamLocs" ); // Open File Which Contains the File Coordinates
+	
+	fin >> CamposX >> Dummy >> CamposY >> Dummy >> CamposZ >> Dummy // Read in Each Vector, Accounting for the Commas
+	    >> LookAtX >> Dummy >> LookAtY >> Dummy >> LookAtZ >> Dummy
+	    >> UpVectX >> Dummy >> UpVectY >> Dummy >> UpVectZ >> Dummy;
+ 	fin.close(); // Close File
+	}
+	else {
+		CamposX = CamposY = 0;
+		CamposZ = 1;
+		LookAtX = 0.01;
+		LookAtY = LookAtZ = 0;
+		UpVectX = UpVectZ = 0;
+		UpVectY = 1;
+	}
+
+	// Compute Spherical Coordinates
+	Radius = sqrt( pow((CamposX-LookAtX),2) + pow((CamposY-LookAtY),2) + pow((CamposZ-LookAtZ),2) );
+	Theata = acos( ((CamposZ-LookAtZ)/Radius) );
+	Phi = atan( (CamposX-LookAtY)/(CamposX-LookAtX) );
+	
+	}
+
+void camera::WriteOut()
+	{
+	ofstream fout;
+	fout.open( "CamLocs" ); // Open File Which Contains the File Coordinates
+
+	fout << CamposX << ',' << CamposY << ',' << CamposZ << ',' // Read in Each Vector, Accounting for the Commas
+             << LookAtX << ',' << LookAtY << ',' << LookAtZ << ','
+	     << UpVectX << ',' << UpVectY << ',' << UpVectZ << ',';
+
+	}
+
+
+
+
+

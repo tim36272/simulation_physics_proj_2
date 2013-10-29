@@ -1,0 +1,354 @@
+#include "geometry.h"
+#include <iostream>
+using namespace std;
+const float PI = 3.1415926;
+
+float geometry::Ag_Theta;
+float geometry::Ag_Phi;
+
+float geometry::CanX;
+float geometry::CanY;
+float geometry::CanZ;
+
+
+
+const int plane = 0;
+void geometry::setOrientation(float angle,float x,float y,float z) {
+	orientationAngle = angle;
+	orientationAxis.set(x,y,z);
+}
+void geometry::drawTriangle(float side1, float side2, float side3) {
+	//make side 1 longest, side 3 shortest
+//	float sides[TRIANGLE_SIDES] =  {side1, side2, side3};
+//	sortNumeric(TRIANGLE_SIDES, sides);
+	//determine circumcenter offset  relative to side1+2 vertex
+	float xOffset=side1/2;
+	float smallSegment=(pow(side3,2)-pow(side1,2)-pow(side2,2))/((-2)*side1);
+	float altitude = sqrt(pow(side2,2)-pow(smallSegment,2));
+	float yOffset=altitude/2;
+	storedGeometry = new float*[3];
+	//create coordinates based on sides and circumcenter
+	//define lower left point
+	storedGeometry[0] = new float[3];
+	storedGeometry[0][X] = -xOffset;
+	storedGeometry[0][Y] = -yOffset;
+	storedGeometry[0][Z] = plane;
+	//define lower right point
+	storedGeometry[1] = new float[3];
+	storedGeometry[1][X] = xOffset;
+	storedGeometry[1][Y] = -yOffset;
+	storedGeometry[1][Z] = plane;
+	//define top point
+	storedGeometry[2] = new float[3];
+	storedGeometry[2][X] = -(xOffset-smallSegment);
+	storedGeometry[2][Y] = yOffset;
+	storedGeometry[2][Z] = plane;
+	
+	//call drawTriangle for coordinates
+	geoLength=3;
+	drawTriangle();
+}
+void geometry::drawTriangle() {
+
+	vector curNorm(0,0,1);
+	vector desNorm(CanX,CanY,CanZ);
+	vector rotationAxis;
+	desNorm.normalize();
+	rotationAxis = curNorm.crossProduct(desNorm);
+	rotationAxis.normalize();
+	float rotationAngle = acos(curNorm.dotProduct(desNorm));
+	float x,y,z;
+	rotationAxis.get(x,y,z);
+	glRotatef(rotationAngle*180/3.141592653,-y,-x,z);
+        
+
+	glBegin(GL_TRIANGLES);
+	//loop on coordinates, changing color in between
+			glColor3f(0.1f,0.0f,0.0f);
+	for (int i=0;i<geoLength;i++) {
+		glVertex3f(storedGeometry[i][X],storedGeometry[i][Y],storedGeometry[i][Z]);
+		glColor3f((float(i)/geoLength),1-(float(i)/geoLength),(float(i)/geoLength));
+	}
+		glEnd();
+}
+/*
+void geometry::drawDome(float radius){
+	
+}
+
+void geometry::drawSphere(float radius) {
+	
+}
+
+
+*/
+void geometry::drawRegPolygon(int numSides, float radius,int reserveSpace=0) {
+	//calculate inner angle of each triangle side
+	float innerAngle = (2*PI)/numSides;
+	float currentAngle = 0;
+	geoLength = (numSides*3)+reserveSpace;
+	//create array of triangles (which are arrays of points) based on the angle above
+		//create the array
+		storedGeometry = new float*[(numSides*3)+reserveSpace];
+	for (int segmentHopper=0;segmentHopper<(3*numSides);segmentHopper++) {
+		storedGeometry[segmentHopper] = new float[3];
+		storedGeometry[segmentHopper][X] = 0;
+		storedGeometry[segmentHopper][Y] = 0;
+		storedGeometry[segmentHopper][Z] = 0;
+		segmentHopper++;
+		storedGeometry[segmentHopper] = new float[3];
+		storedGeometry[segmentHopper][X] = cos(currentAngle)*radius; //cos(angle)*radius
+		storedGeometry[segmentHopper][Y] = sin(currentAngle)*radius; //sin(angle)*radius
+		storedGeometry[segmentHopper][Z] = plane;
+		currentAngle+=innerAngle;
+		segmentHopper++;
+		storedGeometry[segmentHopper] = new float[3];
+		storedGeometry[segmentHopper][X] = cos(currentAngle)*radius; //cos(angle)*radius
+		storedGeometry[segmentHopper][Y] = sin(currentAngle)*radius; //sin(angle)*radius
+		storedGeometry[segmentHopper][Z] = plane;
+	}
+	for (int i=numSides*3;i<(numSides*3)+reserveSpace;i++) {
+		storedGeometry[i] = new float[3];
+	}
+	//call drawTriangle
+	if (reserveSpace==0) {
+		drawTriangle();
+	}
+	
+	//return inner angle for pyramid function
+}
+
+void geometry::drawRectangle(float width, float height,int reserveSpace=0) {
+	//create array of triangles which are offset by -1/2width and -1/2height
+	storedGeometry = new float*[6+reserveSpace];
+	for (int i=0;i<(6+reserveSpace);i++) {
+		storedGeometry[i] = new float[3];
+	}
+		//draw lower right triangle
+		
+		storedGeometry[0][X] = -0.5*width;
+		storedGeometry[0][Y] = -0.5*height;
+		storedGeometry[0][Z] = plane;
+		
+		storedGeometry[1][X] = 0.5*width;
+		storedGeometry[1][Y] = -0.5*height;
+		storedGeometry[1][Z] = plane;
+		
+		storedGeometry[2][X] = 0.5*width;
+		storedGeometry[2][Y] = 0.5*height;
+		storedGeometry[2][Z] = plane;
+		
+		//draw upper left triangle
+		storedGeometry[3][X] = -0.5*width;
+		storedGeometry[3][Y] = -0.5*height;
+		storedGeometry[3][Z] = plane;
+		
+		storedGeometry[4][X] = -0.5*width;
+		storedGeometry[4][Y] = 0.5*height;
+		storedGeometry[4][Z] = plane;
+		
+		storedGeometry[5][X] = 0.5*width;
+		storedGeometry[5][Y] = 0.5*height;
+		storedGeometry[5][Z] = plane;
+		
+	//call drawTriangle
+	geoLength = 6+reserveSpace;
+	if (reserveSpace==0) { //if there is no reserve then draw, otherwise wait
+		drawTriangle();
+	}
+}
+
+void geometry::drawPyramid(int numSides, float radius, float altitude) {
+	//run drawRegPolygon(numSides) and save return value
+	drawRegPolygon(numSides,radius);
+	//clone storedGeometry to temp array
+	float** tempGeometry = new float*[geoLength];
+	for (int i=0;i<geoLength;i++) {
+		tempGeometry[i] = storedGeometry[i]; // the data doesn't need to be destroyed
+	}
+	delete storedGeometry; //just destroy the top pointer
+	storedGeometry = new float*[geoLength+(numSides*3)];
+	//copy everything back
+	int i;
+	for (i=0;i<geoLength;i++) {
+		storedGeometry[i] = tempGeometry[i];; // the data doesn't need to be destroyed
+	}
+	//create and array of triangles from altitude to base
+	for (int j=1;i<((numSides*3)+geoLength);) {//j is placed at corner 2 of a triangle
+		storedGeometry[i] = new float[3];
+			storedGeometry[i][X] = storedGeometry[j][X];
+			storedGeometry[i][Y] = storedGeometry[j][Y];
+			storedGeometry[i][Z] = storedGeometry[j][Z];
+		j++; i++;
+		storedGeometry[i] = new float[3];
+			storedGeometry[i][X] = storedGeometry[j][X];
+			storedGeometry[i][Y] = storedGeometry[j][Y];
+			storedGeometry[i][Z] = storedGeometry[j][Z];
+		j+=2; i++;//incrememnt j by two to place it at corner 2 of the next triangle
+		storedGeometry[i] = new float[3];
+			storedGeometry[i][X] = 0;
+			storedGeometry[i][Y] = 0;
+			storedGeometry[i][Z] = altitude;
+		i++;
+	}
+	//call drawTriangle
+	geoLength += (numSides*3);
+	drawTriangle();
+}
+
+void geometry::drawTrapezoid(float longBase, float shortBase, float side1, float side2) {
+	//calculate 1/2longbase
+	float xOffset = 0.5*shortBase;
+	//make side1 the longest side
+	if (side1>side2) {
+		float temp = side2;
+		side2 = side1;
+		side1 = temp;
+	}
+	//calculate the altitude
+	float fringes = (longBase-shortBase);
+	float semiperimeter = (side1+side2+fringes)/2;
+	float yOffset = sqrt(semiperimeter*(semiperimeter-side1)*(semiperimeter-side2)*(semiperimeter-fringes))/fringes;
+	float altitude = yOffset*2;
+	float fringe1 = sqrt(pow(side1,2)-pow(altitude,2));
+	float fringe2 = fringes-fringe1;
+	//make array of triangles (side1,side2,rectangle)
+	drawRectangle((longBase-fringes),altitude,6);
+		//drawSide1
+		storedGeometry[6][X] = -(fringe1+xOffset);
+		storedGeometry[6][Y] = -yOffset;
+		storedGeometry[6][Z] = plane;
+		
+		storedGeometry[7][X] = -(xOffset);
+		storedGeometry[7][Y] = -yOffset;
+		storedGeometry[7][Z] = plane;
+		
+		storedGeometry[8][X] = -(xOffset);
+		storedGeometry[8][Y] = yOffset;
+		storedGeometry[8][Z] = plane;
+		//drawSide2
+		storedGeometry[9][X] = (fringe2+xOffset);
+		storedGeometry[9][Y] = -yOffset;
+		storedGeometry[9][Z] = plane;
+		
+		storedGeometry[10][X] = (xOffset);
+		storedGeometry[10][Y] = -yOffset;
+		storedGeometry[10][Z] = plane;
+		
+		storedGeometry[11][X] = (xOffset);
+		storedGeometry[11][Y] = yOffset;
+		storedGeometry[11][Z] = plane;
+		
+		drawTriangle();
+}
+
+void geometry::drawParallelagram(float horizontal, float vertical, float smallAngle) {
+	//calculate the altitude from smallAngle and height (by creating four triangles)
+	float altitude = sin(smallAngle)*vertical;
+	float yOffset = 0.5*altitude;
+	float fringe = sqrt(pow(vertical,2)-pow(altitude,2));
+	float xOffset = 0.5*(horizontal-fringe);
+	//make array of triangles (side1,side2,centerupper,centerlower)
+	drawRectangle(horizontal-fringe,altitude,6);
+		storedGeometry[6][X] = -(xOffset+fringe);
+		storedGeometry[6][Y] = -yOffset;
+		storedGeometry[6][Z] = plane;
+		
+		storedGeometry[7][X] = -(xOffset);
+		storedGeometry[7][Y] = -yOffset;
+		storedGeometry[7][Z] = plane;
+		
+		storedGeometry[8][X] = -(xOffset);
+		storedGeometry[8][Y] = yOffset;
+		storedGeometry[8][Z] = plane;
+		//draw side 2 (right)
+		storedGeometry[9][X] = (xOffset+fringe);
+		storedGeometry[9][Y] = yOffset;
+		storedGeometry[9][Z] = plane;
+		
+		storedGeometry[10][X] = (xOffset);
+		storedGeometry[10][Y] = yOffset;
+		storedGeometry[10][Z] = plane;
+		
+		storedGeometry[11][X] = (xOffset);
+		storedGeometry[11][Y] = -yOffset;
+		storedGeometry[11][Z] = plane;
+		
+		drawTriangle();
+}
+void geometry::drawCylinder(float radius, float depth) {
+	int resolution = 100;
+	float x1,y1,x2,y2;
+	int segmentHopper = resolution*3;
+	drawRegPolygon(resolution,radius,resolution*3*6);
+	for (int i=1;i<resolution*3;) {
+		x1 = storedGeometry[i][X];
+		y1 = storedGeometry[i][Y];
+		i++;
+		x2 = storedGeometry[i][X];
+		y2 = storedGeometry[i][Y];
+		storedGeometry[segmentHopper][X] = x1;
+		storedGeometry[segmentHopper][Y] = y1;
+		storedGeometry[segmentHopper][Z] = 0;
+		segmentHopper++;
+		storedGeometry[segmentHopper][X] = x2;
+		storedGeometry[segmentHopper][Y] = y2;
+		storedGeometry[segmentHopper][Z] = 0;
+		segmentHopper++;
+		storedGeometry[segmentHopper][X] = x1;
+		storedGeometry[segmentHopper][Y] = y1;
+		storedGeometry[segmentHopper][Z] = depth;
+		
+		segmentHopper++;
+		storedGeometry[segmentHopper][X] = x2;
+		storedGeometry[segmentHopper][Y] = y2;
+		storedGeometry[segmentHopper][Z] = 0;
+		segmentHopper++;
+		storedGeometry[segmentHopper][X] = x1;
+		storedGeometry[segmentHopper][Y] = y1;
+		storedGeometry[segmentHopper][Z] = depth;
+		segmentHopper++;
+		storedGeometry[segmentHopper][X] = x2;
+		storedGeometry[segmentHopper][Y] = y2;
+		storedGeometry[segmentHopper][Z] = depth;
+		segmentHopper++;
+	}
+        drawTriangle();
+}
+/*
+void geometry::drawKite(float altitude, float width, float intersect) {
+	
+}
+*/
+/*
+void geometry::drawStar(int numPoints, float radius) {
+	drawRegPolygon(numPoints,radius,3*numPoints);
+	float innerAngle = 2*PI/numPoints;
+	float pointAngle = 180-2*(180-innerAngle);
+	float halfPointBase = cos(innerAngle)*radius;
+	float altitude = halfPointBase/tan(0.5*pointAngle);
+//	float midpointX = storedGeometry(
+}
+
+void geometry::drawRandPolyhedron() {
+	
+}
+
+//takes one of the above functions and makes it into a prism 
+void geometry::makePrism() {
+	
+}
+*/
+geometry::geometry() {
+	storedGeometry=NULL;
+	geoLength=0;
+	mode=CARTESIAN;
+}
+
+
+geometry::~geometry() {
+	for (int i=0;i<geoLength;i++) {
+			delete[] storedGeometry[i];
+	}
+	delete storedGeometry;
+}

@@ -1,0 +1,9 @@
+#include <stdlib.h>
+#include <ctime>
+/*------------------------------------------------------------------------------
+purpose: generates a random float between min and max
+action: calculates the return values within the given parameters
+parameters: float min and max
+returns: the random float
+*/
+float randNum(int min, int max);

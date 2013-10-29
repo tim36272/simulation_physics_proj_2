@@ -1,0 +1,48 @@
+#include <cmath>
+#ifndef VECTOR
+#include "../utilities/math/vector.h"
+#define VECTOR
+#endif
+#include <GL/glut.h>
+#include <GL/gl.h>			// Header File For The OpenGL32 Library
+#include <GL/glu.h>			// Header File For The GLu32 Library
+
+#define TRIANGLE_SIDES 3
+#define CARTESIAN 3
+#define X 0
+#define Y 1
+#define Z 2
+
+class geometry {
+	public:
+		void drawTriangle();
+		void drawTriangle(float,float,float);
+		void drawDome();
+		void drawSphere();	
+		void drawRegPolygon(int,float,int); //infinite sides?
+		void drawRectangle(float width, float height,int reserveSpace);
+		void drawPyramid(int numSides, float radius, float altitude);
+		void drawTrapezoid(float longBase, float shortBase, float side1, float side2);
+		void drawCylinder(float radius, float depth);
+		void drawKite();
+		void drawParallelagram(float width, float height, float smallAngle);
+		void drawStar(int numPoints, float radius);
+		void drawRandPolyhedron();
+		void makePrism(); //takes one of the above functions and makes it into a prism
+		void setOrientation(float,float,float,float);
+		float** storedGeometry;
+		int reserveSpace;
+		int geoLength;
+		int mode;
+		vector position;
+		vector orientationAxis;
+		float orientationAngle;
+		~geometry();
+		geometry();
+
+                static float Ag_Theta;
+                static float Ag_Phi;
+                static float CanX;
+                static float CanY;
+                static float CanZ;
+};

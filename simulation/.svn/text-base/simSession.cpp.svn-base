@@ -1,0 +1,397 @@
+#include "simSession.h"
+#include <iostream>
+using namespace std;
+const bool SHOWOFF = true;
+bool redraw=true;
+bool Quit=false;
+int simSession::demoType;
+node* simSession::geometryCursor;
+node* simSession::geometryHead;
+vector simSession::initial,simSession::windForce,simSession::gravityForce,simSession::dragForce,simSession::forceSum,simSession::acceleration,simSession::velocity,simSession::position,simSession::anaVelocity;
+float simSession::windMagnitude,simSession::windDirection,simSession::windVelocity,simSession::mass, simSession::drag, simSession::gravity = GRAVITY;
+float simSession::targetX = 20,simSession::targetY = 0,simSession::targetZ = 0;
+float simSession::anaX, simSession::anaY, simSession::anaZ;
+int simSession::VelFactor=5, simSession::collision = 0;
+void simSession::explodeBall(int count, float x, float y, float z) {
+        for (int i=0;i<count;i++) {
+        	glPushMatrix();
+                glColor3f(rand()%2,rand()%2,rand()%2);        
+        	glTranslatef( 0+rand()%6-3,0+rand()%6-3,20+rand()%6-3);
+        	gluSphere (gluNewQuadric(), 0.1, 32, 32);
+        	glPopMatrix();
+        }
+}
+simSession::simSession(int *argc, char **argv) {
+	//for demo reasons: get demo type
+	mass = 10;
+	drag = 10;
+	windDirection = 3.141592653/2;
+	windVelocity = 0;
+	windMagnitude = 0;
+	geometry::CanX = 0;
+  geometry::CanY = 0;
+  geometry::CanZ = 10;
+	srand(time(NULL));
+	
+  /* Initialize GLUT state - glut will take any command line arguments that pertain to it or 
+     X Windows - look at its documentation at http://reality.sgi.com/mjk/spec3/spec3.html */  
+  glutInit(argc, argv);  
+
+  /* Select type of Display mode:   
+     Double buffer 
+     RGBA color
+     Alpha components supported 
+     Depth buffered for automatic clipping */  
+  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);  
+  /* get a 640 x 480 window */
+  glutInitWindowSize(640, 480);  
+  /* the window starts at the upper left corner of the screen */
+  glutInitWindowPosition(0, 0);  
+
+  /* Open a window */  
+  window = glutCreateWindow("CS 282 - Lab 01 Tutorial");  
+	
+  /* Register the function to do all our OpenGL drawing. */
+  glutDisplayFunc(&DrawGLScene);  
+	
+  /* Even if there are no events, redraw our gl scene. */
+  glutIdleFunc(&DrawGLScene);
+
+  /* Initialize our window. */
+  InitGL(640, 480);
+  
+  // Ag -- Initialize Camera
+  camera Camera1(window);
+
+  // Read In Camera Varibles
+  Camera1.ReadIn(false);
+
+  /*capture key input for Camera*/
+  glutKeyboardFunc( &camera::KeyPress );
+
+  /*capture key input for Cannon*/
+  //glutKeyboardFunc( &geometry::CannonKeyPress );
+
+  // Get Mouse Input
+  glutMotionFunc( &camera::MouseDrag);
+cout << "before main in constructor" <<endl;
+  /* Start Event Processing Engine */  
+  glutMainLoop();
+cout << "exiting constructor" <<endl;
+}
+
+
+/* A general OpenGL initialization function.  Sets all of the initial parameters. */
+void simSession::InitGL(int Width, int Height)	        // We call this right after our OpenGL window is created.
+{
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);		// This Will Clear The Background Color To Black
+  glClearDepth(1.0);				// Enables Clearing Of The Depth Buffer
+  glDepthFunc(GL_LESS);			        // The Type Of Depth Test To Do
+  glEnable(GL_DEPTH_TEST);		        // Enables Depth Testing
+  glShadeModel(GL_SMOOTH);			// Enables Smooth Color Shading
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();				// Reset The Projection Matrix
+
+  gluPerspective(45.0f,(GLfloat)Width/(GLfloat)Height,0.1f,100.0f);	// Calculate The Aspect Ratio Of The Window
+
+  glMatrixMode(GL_MODELVIEW);
+}
+
+/* The idle scene maintainer */
+void simSession::redrawGLScene() {
+	geometryCursor = geometryHead;
+	while (geometryCursor!=NULL) {
+		(geometryCursor->data).drawTriangle();
+		geometryCursor = geometryCursor->next;
+	}
+cout << "redraw" <<endl;
+
+	gluLookAt( (camera::CamposX), (camera::CamposY), (camera::CamposZ),
+		   (camera::LookAtX), (camera::LookAtY), (camera::LookAtZ), 
+		   (camera::UpVectX), (camera::UpVectY), (camera::UpVectZ));
+}
+/* The main drawing function. */
+void simSession::DrawGLScene()
+{
+  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
+  glLoadIdentity();	
+
+
+
+
+	// Ag -- Implement Camera Here
+	// Check for Keyboard Input
+	if (SHOWOFF) {
+		if (!camera::BallCam) {
+			glTranslatef(0.0f,0.0f,-30.0f);
+			gluLookAt( (camera::CamposX), (camera::CamposY), (camera::CamposZ),
+			   (camera::LookAtX), (camera::LookAtY), (camera::LookAtZ), 
+			   (camera::UpVectX), (camera::UpVectY), (camera::UpVectZ));
+		}
+		else {
+			glTranslatef(0.0f,0.0f,1.0f);
+		gluLookAt( (geometry::CanY), (-geometry::CanX), (geometry::CanZ),
+			   (targetX), (targetY), (targetZ), 
+			   (camera::UpVectX), (camera::UpVectY), (camera::UpVectZ));
+		}
+	}
+	else {
+	glTranslatef(0.0f,0.0f,-30.0f);
+		gluLookAt( (camera::CamposX), (camera::CamposY), (camera::CamposZ),
+		   (camera::LookAtX), (camera::LookAtY), (camera::LookAtZ), 
+		   (camera::UpVectX), (camera::UpVectY), (camera::UpVectZ));
+	}
+
+        glColor3f(1,1,1);
+	glBegin(GL_QUADS);
+          glVertex3f(-20,-0.5,-20);
+          glVertex3f(-20,-0.5,20);
+          glVertex3f(20,-0.5,20);
+          glVertex3f(20,-0.5,-20);
+        glEnd();
+	// Euler Sphere
+	glPushMatrix();
+	glColor3f(1.0,0.0,0.0);
+	glTranslatef( geometry::CanY, -1*geometry::CanX, geometry::CanZ);
+	gluSphere (gluNewQuadric(), 0.5, 32, 32);
+	glPopMatrix();
+
+			// Analytical Sphere
+	glPushMatrix();
+			glColor3f(0.0,0.0,1.0);
+			glTranslatef( anaX, -anaY, anaZ);
+			gluSphere (gluNewQuadric(), 0.5, 32, 32);
+			glPopMatrix();
+			
+//cout << "ana: x: " << anaX << " anaY: " << anaY << " anaZ: "<< anaZ << endl;
+//cout << "eul: y: " << geometry::CanY << " eulx: " << geometry::CanX << " eulZ: "<< geometry::CanZ << endl;
+
+	
+	// Target
+	glPushMatrix();
+	glColor3f(0.0,1.0,0.0);
+	glTranslatef( targetX,targetY,targetZ);
+	gluSphere (gluNewQuadric(), 3, 32, 32);
+	glPopMatrix();
+	
+	// CHANGED CODE STARTS HERE
+	   // Check for Varible Changes
+	   if( camera::ChangeWindSpeed != 0 ) {
+	   windMagnitude = ( windMagnitude + ( camera::ChangeWindSpeed * 15 ) );
+	   camera::ChangeWindSpeed = 0;
+	   }
+
+	   if( camera::ChangeMass != 0 ) {
+	   mass = ( mass + ( camera::ChangeMass * 3 ) );
+	   camera::ChangeMass = 0;
+	   }
+
+	   if( camera::ChangeDrag != 0 ) {
+	   drag = drag + camera::ChangeDrag;
+	   camera::ChangeDrag = 0;
+	   }
+
+	   if( camera::ChangeVelo != 0 ) {
+	   VelFactor = VelFactor + ( camera::ChangeVelo );
+		if( VelFactor < 0 )
+		   VelFactor = 0;
+	
+	   camera::ChangeVelo = 0;
+	   }
+
+	   if( camera::ChangeWindDrag != 0 ) {
+	   windMagnitude = windMagnitude + camera::ChangeWindDrag;
+	   camera::ChangeWindDrag = 0;
+	   }
+
+	// CHANGED CODE ENDS HERE
+
+
+
+
+	// Output Vector Info To Screen
+//	cout << "XYZ Pos --[" << (camera::CamposX) << "][" << (camera::CamposY) << "][" << (camera::CamposZ) << "] " 
+//	     << "Center -- [" << (camera::LookAtX) << "][" << (camera::LookAtY) << "][" << (camera::LookAtZ) << ']' << endl;
+
+//  	camera::WriteOut();
+
+	geometryHead = new node;
+	geometryCursor = geometryHead;
+	(geometryCursor->data).drawCylinder(1,10);
+	geometryCursor->next = NULL;
+
+
+
+
+		if (!camera::fired) {
+			getData(position);
+			velocity = position;
+			velocity = velocity * (VelFactor * 0.5 );
+			anaVelocity = velocity;
+			anaY = geometry::CanX;
+			anaX = geometry::CanY;
+			anaZ = geometry::CanZ;
+//			cout << "xVel: " << velocity.data[0] << " yVel: " << velocity.data[1] << " zVel: " << velocity.data[2] << endl;
+		}
+		else {
+			float oldXVel = anaVelocity.data[0];
+			float oldYVel = anaVelocity.data[1];
+			float oldZVel = anaVelocity.data[2];
+			anaVelocity.data[0] = 1/drag*(pow(2.71828183,-drag/mass*DELTA_TIME)*(windVelocity*windMagnitude*cos(windDirection)+drag*oldXVel)-(windMagnitude*windVelocity*cos(windDirection)));
+			anaX = (mass/drag*pow(2.71828183,-drag/mass*DELTA_TIME)* (-windMagnitude*windVelocity*cos(windDirection)/drag-oldXVel ) - (windMagnitude*windVelocity*cos(windDirection)/drag)*DELTA_TIME)-((mass/drag)*(-windMagnitude*windVelocity*cos(windDirection)/drag-oldXVel))+anaX;
+			anaVelocity.data[1] = 1/drag*(pow(2.71828183,-drag/mass*DELTA_TIME)*(drag*oldYVel+mass*-1*gravity))-mass*-1*gravity/drag;
+			anaY = anaY + (-(oldYVel+mass*gravity/drag)*mass/drag*pow(2.71828183,-drag/mass*DELTA_TIME)-DELTA_TIME*mass*gravity/drag)+(mass/drag*(oldYVel+mass*gravity/drag));
+			anaVelocity.data[2] = 1/drag*(pow(2.71828183,-drag/mass*DELTA_TIME)*(windVelocity*windMagnitude*sin(windDirection)+drag*oldZVel)-(windMagnitude*windVelocity*sin(windDirection)));
+			anaZ = (mass/drag*pow(2.71828183,-drag/mass*DELTA_TIME)* (-windMagnitude*windVelocity*sin(windDirection)/drag-oldZVel ) - (windMagnitude*windVelocity*sin(windDirection)/drag)*DELTA_TIME)-((mass/drag)*(-windMagnitude*windVelocity*sin(windDirection)/drag-oldZVel))+anaZ;
+//			cout << "ana vel x: " << anaVelocity.data[0] << "y: " << anaVelocity.data[1] << " z: " << anaVelocity.data[2] << endl;
+
+
+/*------------------------------------------------Euler method-----------------------------------------------------*/
+//cout << endl << "CanX: " <<  geometry::CanX << "   CanY: " << geometry::CanY << "   CanZ: " << geometry::CanZ << endl;
+			getData(position);
+//			cout << position.magnitudeSquared();
+			calcForces(windMagnitude*windVelocity,windDirection,drag,velocity,windForce,gravityForce,gravity,dragForce);
+//			cout << "WM:" <<windMagnitude << " WD: " << windDirection << " drag: " << drag << " position: " << position.magnitudeSquared() << " WF: " << windForce.magnitudeSquared() << " GF: " << gravityForce.magnitudeSquared() << " DF: " << dragForce.magnitudeSquared() << endl;
+//cout << "Position: x: " << position.data[0] << " y: " << position.data[1] << " z: " << position.data[2] << endl;
+			forceSum = sumForces(position,windForce,gravityForce,dragForce);
+//			cout << "force sum: x: " << forceSum.data[0] << " y: " << forceSum.data[1] << " z: " << forceSum.data[2] << endl;
+			acceleration = calcAcceleration(mass,forceSum);
+//cout << "acceleration: x: "<< acceleration.data[0] << " y: " << acceleration.data[1] << " z: " << acceleration.data[2] << endl;
+			velocity = calcVelocity(velocity,acceleration,DELTA_TIME);
+//cout << "velocity: x: "<< velocity.data[0] << " y: " << velocity.data[1] << " z: " << velocity.data[2] << endl;
+			position = calcPosition(position,velocity,DELTA_TIME);
+				vector target(targetX,targetY,targetZ);
+//cout << "Distance: " << target.distance(position)<< endl;
+                        if (collision > 0 ) {
+                                targetX = targetY = targetZ = 10000;
+                                collision++;
+                                explodeBall(10,targetX,targetY,targetZ);
+                                if (collision >300) collision = -1;
+                        }
+			else if (position.data[1]>=-3) {
+				if (target.distance(position) <3) {
+                                        collision = 1;
+                                }
+                                if (collision==-1) {
+                                        collision=0;
+					fire();
+					position.set(0,0,10);
+					geometry::Ag_Theta = 0;
+					geometry::Ag_Phi = 0;
+                                        targetX = 20; targetY = 0; targetZ = 0;
+					targetX += rand()%6-3;
+					targetY += rand()%6-3;
+					targetZ += rand()%6-3;
+					vector origin;
+					while ((origin.distance(target)<10)||(targetY<0)) {
+						targetX += rand()%6-3;
+						targetY += rand()%3;
+						targetZ += rand()%6-3;
+cout << "In ground check"<<endl;
+					}
+				}
+				else if (position.data[1]>=0) {
+					fire();
+					position.set(0,0,10);
+					geometry::Ag_Theta = 0;
+					geometry::Ag_Phi = 0;
+				}
+			}
+			updateProjectilePosition(position);
+		}
+
+
+
+
+  // swap the buffers to display, since double buffering is used.
+  glutSwapBuffers();
+  delete geometryCursor;
+}
+
+void simSession::getData(vector &position) {
+	position.set(geometry::CanY,geometry::CanX,geometry::CanZ);
+}
+
+void simSession::updateProjectilePosition(vector position) {
+	float x,y,z;
+	position.get(x,y,z);
+	geometry::CanY = x;
+	geometry::CanX = y;
+	geometry::CanZ = z;
+}
+
+void simSession::fire() {
+	if (camera::fired) camera::fired = false;
+	else camera::fired = true;
+}
+
+
+
+
+
+
+
+
+float simSession::calcMassProperties() {
+	return 10;
+}
+void simSession::calcForces(float windMagnitude, float windAngle, float drag, vector initial, vector &windForce, vector &gravityForce,float gravity, vector &dragForce) {
+	float mass = calcMassProperties();
+	float dragX,dragY,dragZ;
+	float velocityX,velocityY,velocityZ;
+	float windX,windZ;
+	initial.get(velocityX,velocityY,velocityZ);
+	dragX = drag*velocityX;
+	dragY = drag*velocityY;
+	dragZ = drag*velocityZ;
+	dragForce.set(dragX,dragY,dragZ);
+
+	
+	windX = sin(windAngle)*windMagnitude;
+	windZ = cos(windAngle)*windMagnitude;
+	windForce.set(-windZ,0,-windX);
+//	cout << "Mass: " << mass;
+	gravityForce.set(0,mass*gravity,0);
+}
+
+vector simSession::sumForces (vector initial, vector windForce, vector gravityForce, vector dragForce) {
+	return /*initial+*/windForce+gravityForce-dragForce;
+}
+
+vector simSession::calcAcceleration(float mass, vector force) {
+	vector output;
+	float x,y,z;
+	force.get(x,y,z);
+	output.set(x/mass,y/mass,z/mass);
+	return output;
+}
+
+vector simSession::calcVelocity(vector oldVelocity, vector acceleration, float timestep) {
+	vector output;
+	float x,y,z,xacc,yacc,zacc;
+	acceleration.get(xacc,yacc,zacc);
+	oldVelocity.get(x,y,z);
+	x += xacc*timestep;
+	y += yacc*timestep;
+	z += zacc*timestep;
+	output.set(x,y,z);
+	return output;
+}
+
+vector simSession::calcPosition(vector oldPosition, vector velocity, float timestep) {
+	vector output;
+	float x,y,z,xvel,yvel,zvel;
+	velocity.get(xvel,yvel,zvel);
+	oldPosition.get(x,y,z);
+//cout << "calcPositionBefore: x: " << xvel << " y: " << yvel << " z: " << zvel << endl;
+//cout << "timestep: " << timestep << endl;
+	x += xvel*timestep;
+	y += yvel*timestep;
+	z += zvel*timestep;
+//cout << "calcPositionAfter: x: " << x << " y: " << y << " z: " << z << endl;
+	output.set(x,y,z);
+	return output;
+}
+
+

@@ -1,0 +1,9 @@
+namespace math {
+template<class mathType>
+mathType rungekutta
+
+
+
+
+};
+vector motionFunction(vector acceleration

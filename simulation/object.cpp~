@@ -1,0 +1,70 @@
+#include "object.h"
+#include <iostream>
+using namespace std;
+
+void object::translateObject(vector inPosition) {
+	position = inPosition;
+}
+void object::doPositioning() {
+	float x,y,z;
+	double rotationParams[4];
+	rotation->get(rotationParams);
+	double magnitude = rotationParams[0]*rotationParams[0] + rotationParams[1]*rotationParams[1] + rotationParams[2]*rotationParams[2] + rotationParams[3]*rotationParams[3];
+	if (abs(magnitude - 1) > precision) {
+cout << "Rectifying"<<endl;
+		magnitude = sqrt(magnitude);
+		for (int i=0;i<4;i++) {
+			rotationParams[i] /= magnitude;
+		}
+		rotation->set(rotationParams);
+	}
+	double angle = 2*acos(rotationParams[0]);
+	angle = angle*180/3.141592653;
+	double ox,oy,oz;
+	double scale = rotationParams[1]*rotationParams[1]+rotationParams[2]*rotationParams[2]+rotationParams[3]*rotationParams[3];
+	ox = rotationParams[1]/scale;
+	oy = rotationParams[2]/scale;
+	oz = rotationParams[3]/scale;
+//	glRotated(angle,rotationParams[1],rotationParams[2],rotationParams[3]);
+//	glRotated(angle,oz,oy,ox);
+	double params[9];
+	rotation->getRotationMatrix(params);
+cout << params[0] << " " <<params[3] << " "<<params[6]<<endl;
+cout << params[1] << " " <<params[4] << " "<<params[7]<<endl;
+cout << params[2] << " " <<params[5] << " "<<params[8]<<endl;
+
+	glMultMatrixd(params);
+
+	position.get(x,y,z);
+	glTranslatef(x,y,z);
+}
+
+void object::display() {
+	glPushMatrix();
+	doPositioning();
+	glBegin(GL_TRIANGLES);
+double r[4];
+rotation->get(r);
+cout <<"Quaternion values: w: "<<r[0]<< " x: "<<r[1]<<" y: "<<r[2]<<" z: "<<r[3]<<endl;
+	//loop on coordinates, changing color in between
+		glColor3f(red,green,blue);
+		for (int i=0;i<geoLength;i++) {
+			glVertex3f(storedGeometry[i][X],storedGeometry[i][Y],storedGeometry[i][Z]);
+}
+	glEnd();
+	glPopMatrix();
+}
+
+object::object() {
+//	rotationAxis.set(0,0,1);
+	position=0;
+//	rotationAngle=principleRotationAngle=0;
+	rotation = new Quaternion(1,0,0,0);
+	reserveSpace=0;
+	red=green=blue=255;
+	precision = 0.00001;
+}
+object::~object() {
+
+}
+

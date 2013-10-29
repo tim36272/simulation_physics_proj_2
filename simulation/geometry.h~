@@ -1,0 +1,52 @@
+/**
+ * @file  geometry.h
+ * @brief <b>A Class for Creating and Manipulating 3D Objects</b>
+ *
+ * @author  Gamino/Sweet
+ * @ingroup simulation
+ */  
+
+#include <cmath>
+#include "object.h"
+#ifndef VECTOR
+#include "../utilities/math/vector.h"
+#define VECTOR
+#endif
+
+#define TRIANGLE_SIDES 3
+#define CARTESIAN 3
+#define X 0
+#define Y 1
+#define Z 2
+
+class geometry {
+	public:
+		// object drawing functions
+		void drawTriangle(float,float,float); ///< draws a triangle
+		void drawCube(float edge);
+		void redraw();///< hops through *this's objects and draws them onscreen
+
+		// modifying functions
+		void rotateObject(int ID,vector direction); ///< rotates ID to direction
+		void rotateObject(int ID,float x, float y, float z); ///< rotates ID to x,y,z
+		void rotateObjectPrinciple(int ID,float angle);	///< rotates ID about its principle axis (the axis it is drawn facing)
+		void translateObject(int ID,vector direction); ///< translates ID to direction
+		void translateObject(int ID,float x, float y, float z); ///< translates ID to x,y,z
+		void setColor(int ID,float red,float green,float blue); ///< sets the color of ID to red,green,blue
+		void updateGolfBall();	///<updates the properties of the golf ball
+
+
+		//intrinsic properties		
+		bool isFull(); ///<checks if all the space is full
+		object* cursor;
+
+		~geometry();
+		geometry(int size);
+	private:
+		object* objects;
+		int numObjects;
+		int maxSize;
+		int mode;
+		void moveCursor(int destination); ///<moves the pointer cursor to destination
+
+};

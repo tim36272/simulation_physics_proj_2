@@ -1,0 +1,11 @@
+#ifndef GEOMETRY
+#define GEOMETRY
+#include "geometry.h"
+#endif
+class node {
+    public:
+        geometry data;
+        node* next;
+        node();
+        ~node();
+};

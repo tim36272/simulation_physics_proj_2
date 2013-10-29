@@ -1,0 +1,15 @@
+#include "vector.h"
+#include <stdlib.h>
+#include <iostream>
+using namespace std;
+
+int main() {
+	vector TS_CP(1.0,2.0,3.0);
+	vector TS_CP2(4.0,5.0,6.0);
+	float dotProduct = TS_CP.dotProduct(TS_CP2);
+	cout << "Dot Product: " << dotProduct << '\n';
+	float x,y,z;
+	TS_CP.get(x,y,z);
+	cout << x << " " << y << " " << z;
+	return 0;
+}

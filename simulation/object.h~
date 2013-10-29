@@ -1,0 +1,46 @@
+/**
+ * @file  object.h
+ * @brief <b>A Class for Manipulation of General Objects</b>
+ *
+ * @author  Gamino/Sweet
+ * @ingroup simulation
+ */  
+
+class geometry;
+#ifndef VECTOR
+#include "../utilities/math/vector.h"
+#define VECTOR
+#endif
+#include <GL/glut.h>
+#include <GL/gl.h>			// Header File For The OpenGL32 Library
+#include <GL/glu.h>			// Header File For The GLu32 Library
+#include "../utilities/math/quaternion.h"
+
+
+class object {
+	public:
+		object();
+		~object();
+		void translateObject(vector inPosition); ///<translates *this to inPosition
+		void doPositioning();	///<positions the object onscreen
+		void display(); ///<drives the displayer
+		Quaternion* rotation;
+
+		friend class geometry;
+	private:
+		// internal properties
+		float** storedGeometry;
+		int reserveSpace;
+		int geoLength;
+
+		// simulation variables
+		vector position;
+		
+		// object properties
+		float red,green,blue;
+		float mass;
+		// motion functions
+
+		//motion variables
+		static vector initial;
+};

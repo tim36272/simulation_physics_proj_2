@@ -1,0 +1,59 @@
+/**
+ * @file  golfBall.h
+ * @brief <b>Controls the Ballistic Properties of the Golf Ball Projectile</b>
+ *
+ * @author  Gamino/Sweet
+ * @ingroup simulation
+ */  
+#include <iostream>
+using namespace std;
+#ifndef PI
+#define PI 3.141592753
+#endif
+#ifndef VECTOR
+#include "../utilities/math/vector.h"
+#define VECTOR
+#endif
+#ifndef OPGL
+#define OPGL
+#include <unistd.h>
+#include <GL/glut.h>
+#include <GL/gl.h>			// Header File For The OpenGL32 Library
+#include <GL/glu.h>			// Header File For The GLu32 Library
+#endif
+#ifndef RK
+#define RK
+#include "../utilities/math/rungeKutta.h"
+#endif
+class geometry;
+class golfBall {
+	public:
+		golfBall();
+		~golfBall() {}
+		static void display();
+		friend class geometry;
+	private:
+		// intrinsic properties
+			static float radius,mass;
+			static vector acceleration,velocity,position,rotationalVelocity;
+
+		// external properties
+			static float gravity,mediumDensity, windMagnitude;
+			static vector windDirection,gravityForce,dragForce,magnusForce;
+
+		// physics properties
+			static float lDrag,tDrag,dragThreshold;
+			static bool topSpin;
+			static vector initial,forceSum;
+			static bool showVectors;
+			static int bounces;
+
+		// simulation functions
+			static void doPositioning(); ///< the doPositioning function actually places the golf ball on the screen
+			static vector runSimulation(); ///< runSimultion calls the rungeKutta function to move the ball
+			// component updates
+				static void updateGravity(vector &currentForce);
+				static void updateMagnus(vector &currentForce,vector param);
+				static void updateDrag(vector &currentForce,vector param);
+				static vector sumForces(vector param);
+};

@@ -1,0 +1,11 @@
+vectorTest: main.o vector.o
+	g++ -o vectorTest main.o vector.o -g -Wall
+	
+main.o: main.cpp vector.h
+	g++ -c main.cpp -g -Wall
+
+vector.o: vector.cpp vector.h
+	g++ -c vector.cpp -g -Wall
+	
+clean:
+	rm *.o

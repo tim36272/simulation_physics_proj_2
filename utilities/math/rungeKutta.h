@@ -1,0 +1,2 @@
+#include "vec.h"
+void rungeKutta(vector (*force)(vector),float deltaTime,vector &velocity,vector &position,float mass);

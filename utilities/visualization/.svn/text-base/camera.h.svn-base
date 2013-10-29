@@ -1,0 +1,70 @@
+#include <GL/glut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <iostream>
+#include <math.h>
+#include <fstream>
+#ifndef GEOMETRY
+#define GEOMETRY
+#include "../../simulation/geometry.h"
+#endif
+
+
+class camera {
+	public:
+	camera(int inWindow);
+	~camera();
+
+	// Check for Keyboard Input
+	void static KeyPress( unsigned char, int, int );
+
+	// Check for Mouse Input
+	void static MouseDrag( int, int );
+
+	// Read In and Write Out Camera Coordinates From File
+	void static ReadIn(bool);
+	void static WriteOut();
+
+	// Camera Position, Direction, and Orientation
+	static float CamposX;
+	static float CamposY;
+	static float CamposZ;
+	static float LookAtX, LookAtY, LookAtZ;
+	static float UpVectX, UpVectY, UpVectZ;
+
+	// Mouse Position
+	static float TempX;
+	static float TempY;
+	static float TempZ;
+
+	// In Vector
+	static float InX;
+	static float InY;
+	static float InZ;
+
+	// Hortizontal Vector
+	static float HorizontalX;
+	static float HorizontalY;
+	static float HorizontalZ;
+
+	// Spherical Coordinates
+	static float Radius;
+	static float Theata;
+	static float Phi;
+
+	// Constants
+	static const float Pi = 3.14159265;
+
+	// Varibles
+	static int CamSpeed; // Extra Credit Camera Speed Function
+	static int window;
+        static bool fired;
+
+	// Movement Varibles
+	static int ChangeWindSpeed;
+	static int ChangeMass;
+	static int ChangeDrag;
+	static int ChangeVelo;
+	static int ChangeWindDrag;
+        static bool BallCam;
+};

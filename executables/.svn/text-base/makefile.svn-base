@@ -1,0 +1,34 @@
+NC=-I/usr/local/include
+LIB=-L/usr/local/lib -L/usr/X11R6/lib
+LIBS=-lGL -lGLU -lglut
+
+	
+#lab1: main.o simSession.o geometry.o
+#	g++ $(LIB) $(INC) -o lab1 main.o simSession.o geometry.o $(LIBS)
+	
+lab1: main.o simSession.o geometry.o camera.o vmath.o vector.o node.o
+	g++ $(LIB) $(INC) -o lab1 main.o simSession.o geometry.o camera.o vector.o vmath.o node.o $(LIBS) -g -Wall
+	
+main.o: main.cpp ../simulation/simSession.h ../simulation/geometry.h ../utilities/visualization/camera.h
+	g++ -c main.cpp -g -Wall
+	
+simSession.o: ../simulation/simSession.cpp ../simulation/simSession.h geometry.o camera.o
+	g++ -c "../simulation/simSession.cpp" -g -Wall
+	
+node.o: ../simulation/node.h ../simulation/node.cpp
+	g++ -c "../simulation/node.cpp" -g -Wall
+
+geometry.o: ../simulation/geometry.cpp ../simulation/geometry.h vmath.o vector.o
+	g++ -c "../simulation/geometry.cpp" -g -Wall
+
+camera.o: ../utilities/visualization/camera.cpp ../utilities/visualization/camera.h
+	g++ -c "../utilities/visualization/camera.cpp" -g -Wall
+	
+vector.o: ../utilities/math/vector.cpp ../utilities/math/vector.h vmath.o
+	g++ -c "../utilities/math/vector.cpp" -g -Wall
+	
+vmath.o: ../utilities/math/vmath.cpp ../utilities/math/vmath.h
+	g++ -c "../utilities/math/vmath.cpp" -g -Wall
+
+clean:
+	rm *.o

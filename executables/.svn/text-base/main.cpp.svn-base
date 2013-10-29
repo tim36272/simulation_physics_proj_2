@@ -1,0 +1,100 @@
+#include "../simulation/simSession.h"
+#define PYRAMID 0
+#include <iostream>
+#ifndef VECTOR
+#include "../utilities/math/vector.h"
+#define VECTOR
+#endif
+//const int DELTA_TIME = 0.5;
+using namespace std;
+/*
+float calcMassProperties();
+void calcForces(float windMagnitude, float windAngle, float drag, vector initial, vector &windForce, vector &gravityForce, vector &dragForce);
+vector sumForces (vector initial, vector windForce, vector gravityForce, vector dragForce);
+vector calcAcceleration(float mass, vector force);
+vector calcVelocity(vector oldVelocity, vector acceleration, float timestep);
+vector calcPosition(vector oldPosition, vector velocity, float timestep);*/
+
+int main(int argc, char **argv) 
+{
+	simSession game(&argc,argv);
+/*	vector initial,windForce,gravityForce,dragForce,forceSum,acceleration,velocity,position;
+	float windMagnitude,windDirection,mass, drag;
+	windMagnitude = 0;
+	windDirection = 90; //degrees
+	drag = 0;
+	game.getData(position);
+	velocity = position;
+	mass = 10;
+	game.fire();
+	while(true) {
+		game.getData(position);
+		calcForces(windMagnitude,windDirection,drag,position,windForce,gravityForce,dragForce);
+		forceSum = sumForces(position,windForce,gravityForce,dragForce);
+		acceleration = calcAcceleration(mass,forceSum);
+		velocity = calcVelocity(velocity,acceleration,DELTA_TIME);
+		position = calcPosition(position,velocity,DELTA_TIME);
+		game.updateProjectilePosition(position);
+	}*/
+  return 1;
+}
+/*
+float calcMassProperties() {
+	return 10;
+}
+void calcForces(float windMagnitude, float windAngle, float drag, vector initial, vector &windForce, vector &gravityForce, vector &dragForce) {
+	float mass = calcMassProperties();
+	float dragX,dragY,dragZ;
+	float velocityX,velocityY,velocityZ;
+	float windY,windZ;
+	initial.get(velocityX,velocityY,velocityZ);
+	dragX = -drag*velocityX;
+	dragY = -drag*velocityY;
+	dragZ = -drag*velocityZ;
+	dragForce.set(dragX,dragY,dragZ);
+	// wind x=0
+	// windAngle = 90;
+	
+	windY = sin(windAngle)*windMagnitude;
+	windZ = cos(windAngle)*windMagnitude;
+	windForce.set(0,windY,windZ);
+
+	gravityForce.set(mass*9.81,0,0);
+}
+
+vector sumForces (vector initial, vector windForce, vector gravityForce, vector dragForce) {
+	return initial+windForce+gravityForce+dragForce;
+}
+
+vector calcAcceleration(float mass, vector force) {
+	vector output;
+	float x,y,z;
+	force.get(x,y,z);
+	output.set(x/mass,y/mass,z/mass);
+	return output;
+}
+
+vector calcVelocity(vector oldVelocity, vector acceleration, float timestep) {
+	vector output;
+	float x,y,z,xacc,yacc,zacc;
+	acceleration.get(xacc,yacc,zacc);
+	oldVelocity.get(x,y,z);
+	x += xacc*timestep;
+	y += yacc*timestep;
+	z += zacc*timestep;
+	output.set(x,y,z);
+	return output;
+}
+
+vector calcPosition(vector oldPosition, vector velocity, float timestep) {
+	vector output;
+	float x,y,z,xvel,yvel,zvel;
+	velocity.get(xvel,yvel,zvel);
+	oldPosition.get(x,y,z);
+	x += xvel*timestep;
+	y += yvel*timestep;
+	z += zvel*timestep;
+	output.set(x,y,z);
+	return output;
+}
+*/
